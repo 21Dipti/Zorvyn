@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zorvyn — Finance Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+</head>
+<body>
+
+<!-- ████████████████████  AUTH SCREEN  ████████████████████ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">💰</div>
+      <div>
+        <div class="auth-logo-text">Zorvyn</div>
+        <div class="auth-logo-sub">Finance Tracker</div>
+      </div>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Sign In</button>
+      <button class="auth-tab" data-tab="register">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div class="auth-form-wrap active" id="tab-login">
+      <div id="login-error" class="alert alert-error" style="display:none"></div>
+      <div class="form-row">
+        <label class="form-label">Username</label>
+        <input id="login-username" class="form-control" type="text" placeholder="e.g. analyst" autocomplete="username" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Password</label>
+        <input id="login-password" class="form-control" type="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button id="btn-login" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.4rem">
+        Sign In
+      </button>
+      <p style="font-size:.78rem;color:var(--text-muted);margin-top:1rem;text-align:center">
+        Demo — analyst / analyst123! &nbsp;|&nbsp; viewer / viewer123! &nbsp;|&nbsp; admin / admin123!
+      </p>
+    </div>
+
+    <!-- Register -->
+    <div class="auth-form-wrap" id="tab-register">
+      <div id="register-error" class="alert alert-error" style="display:none"></div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label class="form-label">First Name</label>
+          <input id="reg-first" class="form-control" type="text" placeholder="Alice" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Last Name</label>
+          <input id="reg-last" class="form-control" type="text" placeholder="Smith" />
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Username</label>
+        <input id="reg-username" class="form-control" type="text" placeholder="alicesmith" autocomplete="username" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Email</label>
+        <input id="reg-email" class="form-control" type="email" placeholder="alice@example.com" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Password</label>
+        <input id="reg-password" class="form-control" type="password" placeholder="Min 8 characters" autocomplete="new-password" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Confirm Password</label>
+        <input id="reg-confirm" class="form-control" type="password" placeholder="Repeat password" autocomplete="new-password" />
+      </div>
+      <button id="btn-register" class="btn btn-primary" style="width:100%;justify-content:center">
+        Create Account
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ████████████████████  APP SHELL  ████████████████████ -->
+<div id="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">💰</div>
+      <div class="sidebar-logo-text">Zorvyn</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <button class="nav-item active" data-page="dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </button>
+
+      <div class="nav-section-label">Finance</div>
+      <button class="nav-item" data-page="transactions">
+        <span class="nav-icon">💳</span> Transactions
+      </button>
+      <button class="nav-item js-analyst-only" data-page="analytics">
+        <span class="nav-icon">📈</span> Analytics
+      </button>
+      <button class="nav-item js-analyst-only" data-page="export">
+        <span class="nav-icon">⬇️</span> Export CSV
+      </button>
+
+      <div class="nav-section-label">Settings</div>
+      <button class="nav-item" data-page="profile">
+        <span class="nav-icon">👤</span> Profile
+      </button>
+      <button class="nav-item js-admin-only" data-page="users">
+        <span class="nav-icon">🛡️</span> Users
+      </button>
+      <button class="nav-item js-admin-only" data-page="categories">
+        <span class="nav-icon">🗂️</span> Categories
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="sb-avatar">A</div>
+        <div>
+          <div class="user-name" id="sb-name">—</div>
+          <div class="user-role" id="sb-role">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" id="btn-logout">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-area">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:.8rem">
+        <button id="menu-toggle" class="btn btn-ghost btn-sm btn-icon" style="display:none">☰</button>
+        <span class="topbar-title" id="page-title">Dashboard</span>
+      </div>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </header>
+
+    <main class="page-content">
+
+      <!-- ── Dashboard ── -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid" id="dash-stats">
+          <div class="loading-overlay" style="grid-column:1/-1"><div class="spinner"></div></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Recent Activity</span></div>
+            <div id="dash-recent"><div class="loading-overlay"><div class="spinner"></div></div></div>
+          </div>
+          <div class="card js-analyst-only">
+            <div class="card-header"><span class="card-title">Top Categories</span></div>
+            <div class="card-body" id="dash-categories">
+              <div class="loading-overlay"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card js-analyst-only">
+          <div class="card-header">
+            <span class="card-title">Monthly Overview</span>
+            <select id="chart-year" class="form-control" style="width:100px;padding:.3rem .6rem;font-size:.82rem"></select>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap"><div class="bar-chart" id="bar-chart"></div></div>
+            <div class="chart-legend">
+              <span><span class="legend-dot" style="background:var(--income-clr)"></span>Income</span>
+              <span><span class="legend-dot" style="background:var(--expense-clr)"></span>Expenses</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Transactions ── -->
+      <div class="page" id="page-transactions">
+        <div class="card">
+          <div class="filters-bar" id="txn-filters">
+            <select id="filter-type" class="form-control">
+              <option value="">All types</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+            <input id="filter-date-from" class="form-control" type="date" placeholder="From" title="Date from" />
+            <input id="filter-date-to"   class="form-control" type="date" placeholder="To"   title="Date to" />
+            <input id="filter-search" class="form-control" type="text" placeholder="🔍  Search notes / category" style="min-width:200px" />
+            <button id="btn-filter-apply" class="btn btn-ghost">Apply</button>
+            <button id="btn-filter-reset" class="btn btn-ghost">Reset</button>
+            <div style="margin-left:auto" id="txn-add-btn-wrap">
+              <button class="btn btn-primary js-analyst-only" id="btn-new-txn" style="display:none">+ New Transaction</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Category</th>
+                  <th>Notes</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="txn-tbody">
+                <tr><td colspan="6"><div class="loading-overlay"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="txn-pagination"></div>
+        </div>
+      </div>
+
+      <!-- ── Analytics ── -->
+      <div class="page" id="page-analytics">
+        <div class="stats-grid" id="analytics-stats"></div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Income by Category</span></div>
+            <div class="card-body" id="income-cats"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Expenses by Category</span></div>
+            <div class="card-body" id="expense-cats"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Monthly Trend</span>
+            <select id="analytics-year" class="form-control" style="width:100px;padding:.3rem .6rem;font-size:.82rem"></select>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap"><div class="bar-chart" id="analytics-chart"></div></div>
+            <div class="chart-legend">
+              <span><span class="legend-dot" style="background:var(--income-clr)"></span>Income</span>
+              <span><span class="legend-dot" style="background:var(--expense-clr)"></span>Expenses</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Export ── -->
+      <div class="page" id="page-export">
+        <div class="card" style="max-width:480px">
+          <div class="card-header"><span class="card-title">Export Transactions</span></div>
+          <div class="card-body">
+            <p style="font-size:.88rem;color:var(--text-muted);margin-bottom:1.2rem">
+              Download all your transactions as a CSV file. Admins can optionally filter by user.
+            </p>
+            <div class="form-row js-admin-only" id="export-user-row">
+              <label class="form-label">Filter by User (admin only)</label>
+              <select id="export-user-id" class="form-control">
+                <option value="">All users</option>
+              </select>
+            </div>
+            <button id="btn-do-export" class="btn btn-primary">⬇️&nbsp; Download CSV</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Profile ── -->
+      <div class="page" id="page-profile">
+        <div class="card" style="max-width:520px">
+          <div class="card-header"><span class="card-title">My Profile</span></div>
+          <div class="card-body">
+            <div id="profile-error" class="alert alert-error" style="display:none"></div>
+            <div class="form-grid-2">
+              <div class="form-row">
+                <label class="form-label">First Name</label>
+                <input id="prof-first" class="form-control" type="text" />
+              </div>
+              <div class="form-row">
+                <label class="form-label">Last Name</label>
+                <input id="prof-last" class="form-control" type="text" />
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="form-label">Username</label>
+              <input id="prof-username" class="form-control" type="text" disabled />
+            </div>
+            <div class="form-row">
+              <label class="form-label">Email</label>
+              <input id="prof-email" class="form-control" type="email" />
+            </div>
+            <div class="form-row">
+              <label class="form-label">Role</label>
+              <input id="prof-role" class="form-control" type="text" disabled />
+            </div>
+            <div class="form-actions">
+              <button id="btn-save-profile" class="btn btn-primary">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Users (admin) ── -->
+      <div class="page" id="page-users">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">All Users</span>
+            <input id="user-search" class="form-control" type="text" placeholder="🔍  Search users…" style="max-width:220px;padding:.38rem .7rem;font-size:.82rem" />
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="6"><div class="loading-overlay"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Categories (admin) ── -->
+      <div class="page" id="page-categories">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Categories</span>
+            <button class="btn btn-primary btn-sm" id="btn-new-cat">+ New Category</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Transactions</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="cats-tbody">
+                <tr><td colspan="4"><div class="loading-overlay"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /.main-area -->
+</div><!-- /#app-shell -->
+
+<!-- ████████████████████  MODALS  ████████████████████ -->
+
+<!-- Transaction modal -->
+<div class="modal-backdrop" id="modal-txn">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-txn-title">New Transaction</span>
+      <button class="modal-close" data-close="modal-txn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-txn-error" class="alert alert-error" style="display:none"></div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label class="form-label">Amount *</label>
+          <input id="txn-amount" class="form-control" type="number" step="0.01" min="0.01" placeholder="0.00" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Type *</label>
+          <select id="txn-type" class="form-control">
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label class="form-label">Date *</label>
+          <input id="txn-date" class="form-control" type="date" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Category</label>
+          <select id="txn-category" class="form-control">
+            <option value="">— None —</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Notes</label>
+        <input id="txn-notes" class="form-control" type="text" placeholder="Optional description" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="modal-txn">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-txn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category modal -->
+<div class="modal-backdrop" id="modal-cat">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-cat-title">New Category</span>
+      <button class="modal-close" data-close="modal-cat">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-cat-error" class="alert alert-error" style="display:none"></div>
+      <div class="form-row">
+        <label class="form-label">Name *</label>
+        <input id="cat-name" class="form-control" type="text" placeholder="e.g. Rent" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Description</label>
+        <input id="cat-desc" class="form-control" type="text" placeholder="Optional description" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="modal-cat">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-cat">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- User role modal -->
+<div class="modal-backdrop" id="modal-user">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit User</span>
+      <button class="modal-close" data-close="modal-user">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-user-error" class="alert alert-error" style="display:none"></div>
+      <div class="form-row">
+        <label class="form-label">Username</label>
+        <input id="edit-user-username" class="form-control" disabled />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Role</label>
+        <select id="edit-user-role" class="form-control">
+          <option value="viewer">Viewer</option>
+          <option value="analyst">Analyst</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Active</label>
+        <select id="edit-user-active" class="form-control">
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="modal-user">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-user">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm delete modal -->
+<div class="modal-backdrop" id="modal-confirm">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <span class="modal-title">Confirm Delete</span>
+      <button class="modal-close" data-close="modal-confirm">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-text" style="font-size:.9rem;color:var(--text-muted)"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close="modal-confirm">Cancel</button>
+      <button class="btn btn-danger" id="btn-confirm-delete">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+{% load static %}
+<script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>
